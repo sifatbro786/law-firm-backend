@@ -18,6 +18,7 @@ const serviceSchema = new mongoose.Schema(
         content: {
             type: String,
             required: true,
+            default: "",
         },
         icon: String,
         order: Number,

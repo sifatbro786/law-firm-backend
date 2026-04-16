@@ -8,10 +8,33 @@ const adminSchema = new mongoose.Schema(
             required: true,
             unique: true,
             lowercase: true,
+            trim: true,
         },
         password: {
             type: String,
             required: true,
+        },
+        name: {
+            type: String,
+            required: true,
+        },
+        role: {
+            type: String,
+            enum: ["super_admin", "admin"],
+            default: "admin",
+        },
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
+        lastLogin: {
+            type: Date,
+        },
+        resetPasswordToken: {
+            type: String,
+        },
+        resetPasswordExpires: {
+            type: Date,
         },
     },
     { timestamps: true },
