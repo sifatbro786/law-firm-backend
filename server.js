@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
+const cron = require("node-cron");
+const axios = require("axios");
 
 // Routes
 const authRoutes = require("./routes/auth");
@@ -36,6 +38,13 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/case-studies", caseStudyRoutes);
 app.use("/api/case-info", caseInfoRoutes);
+app.get("/api/health", (req, res) => {
+    res.status(200).json({
+        status: "OK",
+        uptime: process.uptime(),
+        timestamp: new Date(),
+    });
+});
 
 // MongoDB Connection
 const startServer = async () => {
@@ -55,5 +64,14 @@ const startServer = async () => {
         process.exit(1);
     }
 };
+
+cron.schedule("*/10 * * * *", async () => {
+    try {
+        const res = await axios.get("https://law-firm-backend-yuxn.onrender.com/api/health");
+        console.log("Ping success:", res.data);
+    } catch (error) {
+        console.error("Ping failed:", error.message);
+    }
+});
 
 startServer();
