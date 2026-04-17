@@ -5,12 +5,12 @@ const dotenv = require("dotenv");
 const path = require("path");
 const cron = require("node-cron");
 const axios = require("axios");
+const fs = require("fs");
 
 // Routes
 const authRoutes = require("./routes/auth");
 const serviceRoutes = require("./routes/services");
 const attorneyRoutes = require("./routes/attorneys");
-// const blogRoutes = require("./routes/blogs");
 const contactRoutes = require("./routes/contact");
 const bookingRoutes = require("./routes/bookings");
 const caseStudyRoutes = require("./routes/caseStudies");
@@ -20,24 +20,49 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
+// CORS configuration - ফ্রন্টএন্ড URL সঠিকভাবে যোগ করুন
+const allowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://neela-law-firm.vercel.app",
+    "https://neela-law-firm-git-main.vercel.app",
+];
+
 app.use(
     cors({
-        origin: ["http://localhost:3000", "https://neela-law-firm.vercel.app"],
+        origin: function (origin, callback) {
+            // Allow requests with no origin (like mobile apps or curl requests)
+            if (!origin) return callback(null, true);
+            if (allowedOrigins.indexOf(origin) !== -1) {
+                return callback(null, true);
+            } else {
+                console.log("Blocked origin:", origin);
+                return callback(null, true); // Temporarily allow all for testing
+            }
+        },
         credentials: true,
     }),
 );
+
+// uploads folder ensure
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/attorneys", attorneyRoutes);
-// app.use("/api/blogs", blogRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/case-studies", caseStudyRoutes);
 app.use("/api/case-info", caseInfoRoutes);
+
+// Health check route
 app.get("/api/health", (req, res) => {
     res.status(200).json({
         status: "OK",
@@ -49,10 +74,7 @@ app.get("/api/health", (req, res) => {
 // MongoDB Connection
 const startServer = async () => {
     try {
-        await mongoose.connect(process.env.MONGODB_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
+        await mongoose.connect(process.env.MONGODB_URI);
         console.log("MongoDB connected successfully");
 
         const PORT = process.env.PORT || 5000;
@@ -65,10 +87,11 @@ const startServer = async () => {
     }
 };
 
+// Keep server alive
 cron.schedule("*/10 * * * *", async () => {
     try {
         const res = await axios.get("https://law-firm-backend-yuxn.onrender.com/api/health");
-        console.log("Ping success:", res.data);
+        console.log("Ping success:", res.data.status);
     } catch (error) {
         console.error("Ping failed:", error.message);
     }

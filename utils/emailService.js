@@ -1299,7 +1299,7 @@ const sendPasswordResetEmail = async (email, resetToken, name) => {
         return;
     }
 
-    const resetUrl = `${process.env.FRONTEND_URL}/admin/reset-password?token=${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/admin/reset-password?token=${resetToken}`;
 
     const mailOptions = {
         from: `"Neela's Law Firm" <${process.env.EMAIL_USER}>`,
