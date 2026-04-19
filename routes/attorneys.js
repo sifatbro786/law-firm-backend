@@ -6,15 +6,8 @@ const fs = require("fs");
 const path = require("path");
 const router = express.Router();
 
-// Helper function to get full image URL
-const getFullImageUrl = (filename) => {
-    if (!filename) return null;
-    // If already a full URL, return as is
-    if (filename.startsWith('http')) return filename;
-    // Your actual domain without 'api.'
-    const baseUrl = process.env.BASE_URL || "https://kormordon.com";
-    return `${baseUrl}/uploads/${filename}`;
-};
+// Your actual domain - NO 'api.' subdomain
+const BASE_URL = "https://kormordon.com";
 
 // Get all attorneys
 router.get("/", async (req, res) => {
@@ -48,26 +41,20 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
         
         const attorneyData = JSON.parse(req.body.data);
         
-        // Handle image upload
+        // Handle image upload - Save FULL URL in database
         if (req.file) {
-            // Store only the filename (not full URL)
-            attorneyData.image = req.file.filename;
-            console.log("Image filename saved:", attorneyData.image);
+            const fullImageUrl = `${BASE_URL}/uploads/${req.file.filename}`;
+            attorneyData.image = fullImageUrl;
+            console.log("Full URL saved to database:", attorneyData.image);
         } else {
             console.log("No image uploaded");
         }
         
         const attorney = new Attorney(attorneyData);
         await attorney.save();
-        
-        // Convert to full URL for response
-        const attorneyObj = attorney.toObject();
-        if (attorneyObj.image) {
-            attorneyObj.imageUrl = getFullImageUrl(attorneyObj.image);
-        }
-        
         console.log("Attorney created with ID:", attorney._id);
-        res.status(201).json(attorneyObj);
+        
+        res.status(201).json(attorney);
     } catch (error) {
         console.error("Create attorney error:", error);
         res.status(400).json({ error: error.message });
@@ -93,45 +80,48 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
             return res.status(404).json({ error: "Attorney not found" });
         }
         
-        let finalImageFilename = existingAttorney.image; // Default to existing
+        let finalImageUrl = existingAttorney.image;
         
         // Case 1: Remove existing image
         if (attorneyData.removeImage === true) {
             console.log("Removing existing image");
             if (existingAttorney.image) {
-                const oldImagePath = path.join(__dirname, "..", "uploads", existingAttorney.image);
+                // Extract filename from URL
+                const filename = path.basename(existingAttorney.image);
+                const oldImagePath = path.join(__dirname, "..", "uploads", filename);
                 if (fs.existsSync(oldImagePath)) {
                     fs.unlinkSync(oldImagePath);
                     console.log("Deleted old image");
                 }
             }
-            finalImageFilename = null;
+            finalImageUrl = null;
         }
         
-        // Case 2: Upload new image (this takes priority over remove)
+        // Case 2: Upload new image
         if (req.file) {
             console.log("Uploading new image:", req.file.filename);
             
-            // Delete old image if exists (and not already deleted)
+            // Delete old image file
             if (existingAttorney.image && !attorneyData.removeImage) {
-                const oldImagePath = path.join(__dirname, "..", "uploads", existingAttorney.image);
+                const oldFilename = path.basename(existingAttorney.image);
+                const oldImagePath = path.join(__dirname, "..", "uploads", oldFilename);
                 if (fs.existsSync(oldImagePath)) {
                     fs.unlinkSync(oldImagePath);
-                    console.log("Deleted old image before new upload");
+                    console.log("Deleted old image file");
                 }
             }
-            finalImageFilename = req.file.filename;
+            
+            // Save FULL URL to database
+            finalImageUrl = `${BASE_URL}/uploads/${req.file.filename}`;
         }
         
-        // Update the image field in attorneyData
-        attorneyData.image = finalImageFilename;
-        
-        // Remove temporary flag
+        // Update the image field
+        attorneyData.image = finalImageUrl;
         delete attorneyData.removeImage;
         
-        console.log("Final image filename to save:", attorneyData.image);
+        console.log("Final full URL to save:", attorneyData.image);
         
-        // Update all fields including image
+        // Update all fields
         const updatedAttorney = await Attorney.findByIdAndUpdate(
             req.params.id,
             {
@@ -148,16 +138,10 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
             { new: true, runValidators: true }
         );
         
-        console.log("Update successful. New image filename:", updatedAttorney.image);
+        console.log("Update successful. Image URL in DB:", updatedAttorney.image);
         console.log("=== END UPDATE ===");
         
-        // Convert to full URL for response
-        const attorneyObj = updatedAttorney.toObject();
-        if (attorneyObj.image) {
-            attorneyObj.imageUrl = getFullImageUrl(attorneyObj.image);
-        }
-        
-        res.json(attorneyObj);
+        res.json(updatedAttorney);
     } catch (error) {
         console.error("Update attorney error:", error);
         res.status(400).json({ error: error.message });
@@ -174,7 +158,9 @@ router.delete("/:id", auth, async (req, res) => {
         
         // Delete associated image file
         if (attorney.image) {
-            const imagePath = path.join(__dirname, "..", "uploads", attorney.image);
+            // Extract filename from URL
+            const filename = path.basename(attorney.image);
+            const imagePath = path.join(__dirname, "..", "uploads", filename);
             if (fs.existsSync(imagePath)) {
                 fs.unlinkSync(imagePath);
                 console.log("Deleted image file:", imagePath);
