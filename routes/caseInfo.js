@@ -7,6 +7,9 @@ const auth = require("../middleware/auth");
 
 const router = express.Router();
 
+// Your backend API URL
+const BASE_URL = "https://api.kormordon.com";
+
 // Ensure upload directory exists
 const uploadDir = path.join(__dirname, "../uploads/cases");
 if (!fs.existsSync(uploadDir)) {
@@ -59,6 +62,11 @@ const upload = multer({
     },
 });
 
+// Helper function to get full URL
+const getFullFileUrl = (filename) => {
+    return `${BASE_URL}/uploads/cases/${filename}`;
+};
+
 // Get all case info with search and pagination (admin only)
 router.get("/", auth, async (req, res) => {
     try {
@@ -110,18 +118,18 @@ router.get("/:id", auth, async (req, res) => {
     }
 });
 
-// Create new case info with file upload (admin only) - FIXED
+// Create new case info with file upload (admin only)
 router.post("/", auth, upload.array("files", 10), async (req, res) => {
     try {
         console.log("=== CREATE CASE INFO ===");
         console.log("Files received:", req.files ? req.files.length : 0);
 
+        // Save FULL URL in database
         const fileData =
             req.files?.map((file) => ({
                 originalName: file.originalname,
                 fileName: file.filename,
-                // শুধু relative path সংরক্ষণ করুন, full path না
-                filePath: `/uploads/cases/${file.filename}`, // IMPORTANT: শুধু relative path
+                filePath: getFullFileUrl(file.filename), // Full URL stored
                 fileType: file.mimetype,
                 fileSize: file.size,
                 uploadedAt: new Date(),
@@ -143,6 +151,9 @@ router.post("/", auth, upload.array("files", 10), async (req, res) => {
         const caseInfo = new CaseInfo(caseInfoData);
         await caseInfo.save();
 
+        console.log("Case info created with ID:", caseInfo._id);
+        console.log("Files saved with full URLs:", fileData.map(f => f.filePath));
+
         res.status(201).json(caseInfo);
     } catch (error) {
         console.error("Create case info error:", error);
@@ -150,7 +161,7 @@ router.post("/", auth, upload.array("files", 10), async (req, res) => {
     }
 });
 
-// Update case info with optional file upload (admin only) - FIXED
+// Update case info with optional file upload (admin only)
 router.put("/:id", auth, upload.array("files", 10), async (req, res) => {
     try {
         console.log("=== UPDATE CASE INFO ===");
@@ -179,8 +190,9 @@ router.put("/:id", auth, upload.array("files", 10), async (req, res) => {
             for (const fileIndex of sortedIndices) {
                 if (caseInfo.files[fileIndex]) {
                     const fileToDelete = caseInfo.files[fileIndex];
-                    // Delete physical file
-                    const physicalPath = path.join(__dirname, "..", fileToDelete.filePath);
+                    // Extract filename from full URL to delete physical file
+                    const filename = path.basename(fileToDelete.filePath);
+                    const physicalPath = path.join(__dirname, "..", "uploads/cases", filename);
                     if (fs.existsSync(physicalPath)) {
                         fs.unlinkSync(physicalPath);
                         console.log("Deleted file:", physicalPath);
@@ -190,12 +202,12 @@ router.put("/:id", auth, upload.array("files", 10), async (req, res) => {
             }
         }
 
-        // Add new files - শুধু relative path সংরক্ষণ করুন
+        // Add new files - Save FULL URL in database
         if (req.files && req.files.length > 0) {
             const newFiles = req.files.map((file) => ({
                 originalName: file.originalname,
                 fileName: file.filename,
-                filePath: `/uploads/cases/${file.filename}`, // IMPORTANT: শুধু relative path
+                filePath: getFullFileUrl(file.filename), // Full URL stored
                 fileType: file.mimetype,
                 fileSize: file.size,
                 uploadedAt: new Date(),
@@ -204,6 +216,8 @@ router.put("/:id", auth, upload.array("files", 10), async (req, res) => {
         }
 
         await caseInfo.save();
+        console.log("Updated files with full URLs");
+        
         res.json(caseInfo);
     } catch (error) {
         console.error("Update case info error:", error);
@@ -221,9 +235,14 @@ router.delete("/:id", auth, async (req, res) => {
 
         // Delete all associated files
         for (const file of caseInfo.files) {
-            if (file.filePath && fs.existsSync(file.filePath)) {
-                fs.unlinkSync(file.filePath);
-                console.log("Deleted file:", file.filePath);
+            if (file.filePath) {
+                // Extract filename from full URL
+                const filename = path.basename(file.filePath);
+                const physicalPath = path.join(__dirname, "..", "uploads/cases", filename);
+                if (fs.existsSync(physicalPath)) {
+                    fs.unlinkSync(physicalPath);
+                    console.log("Deleted file:", physicalPath);
+                }
             }
         }
 
@@ -247,10 +266,11 @@ router.delete("/:id/files/:fileIndex", auth, async (req, res) => {
             return res.status(404).json({ error: "File not found" });
         }
 
-        // Delete physical file using relative path
+        // Delete physical file using full URL
         const fileToDelete = caseInfo.files[fileIndex];
         if (fileToDelete && fileToDelete.filePath) {
-            const physicalPath = path.join(__dirname, "..", fileToDelete.filePath);
+            const filename = path.basename(fileToDelete.filePath);
+            const physicalPath = path.join(__dirname, "..", "uploads/cases", filename);
             if (fs.existsSync(physicalPath)) {
                 fs.unlinkSync(physicalPath);
                 console.log("Deleted file:", physicalPath);
