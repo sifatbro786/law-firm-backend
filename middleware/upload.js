@@ -8,17 +8,19 @@ if (!fs.existsSync(uploadDir)) {
     console.log("Created uploads directory:", uploadDir);
 }
 
-// Base URL - env থেকে নিন
-const BASE_URL = process.env.BASE_URL || "https://api.kormondon.com";
-
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
-        // ফাইলের নাম unique করতে পারেন, তবে আপনার ইচ্ছামত রাখুন
-        const originalName = file.originalname;
-        cb(null, originalName);
+        // Remove spaces and special characters from filename
+        const safeName = file.originalname
+            .replace(/\s+/g, '_')
+            .replace(/[^a-zA-Z0-9._-]/g, '');
+        
+        // Add timestamp to avoid duplicate names
+        const uniqueName = Date.now() + '-' + safeName;
+        cb(null, uniqueName);
     },
 });
 
@@ -40,10 +42,4 @@ const upload = multer({
     fileFilter: fileFilter,
 });
 
-// হেল্পার ফাংশন - সম্পূর্ণ URL বানানোর জন্য
-const getFullImageUrl = (filename) => {
-    return `${BASE_URL}/uploads/${filename}`;
-};
-
 module.exports = upload;
-module.exports.getFullImageUrl = getFullImageUrl;

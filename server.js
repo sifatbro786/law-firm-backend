@@ -20,7 +20,6 @@ dotenv.config();
 
 const app = express();
 
-// CORS configuration - ফ্রন্টএন্ড URL সঠিকভাবে যোগ করুন
 const allowedOrigins = [
     "http://localhost:3000",
     "http://localhost:5173",
@@ -31,20 +30,20 @@ const allowedOrigins = [
 app.use(
     cors({
         origin: function (origin, callback) {
-            // Allow requests with no origin (like mobile apps or curl requests)
+
             if (!origin) return callback(null, true);
             if (allowedOrigins.indexOf(origin) !== -1) {
                 return callback(null, true);
             } else {
                 console.log("Blocked origin:", origin);
-                return callback(null, true); // Temporarily allow all for testing
+                return callback(null, true); 
             }
         },
         credentials: true,
     }),
 );
 
-// uploads folder ensure
+
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
@@ -53,7 +52,7 @@ if (!fs.existsSync(uploadsDir)) {
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// API Routes
+
 app.use("/api/auth", authRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/attorneys", attorneyRoutes);
@@ -62,7 +61,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/case-studies", caseStudyRoutes);
 app.use("/api/case-info", caseInfoRoutes);
 
-// Health check route
+
 app.get("/api/health", (req, res) => {
     res.status(200).json({
         status: "OK",
@@ -71,7 +70,7 @@ app.get("/api/health", (req, res) => {
     });
 });
 
-// MongoDB Connection
+
 const startServer = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URI);
@@ -87,7 +86,7 @@ const startServer = async () => {
     }
 };
 
-// Keep server alive
+
 cron.schedule("*/10 * * * *", async () => {
     try {
         const res = await axios.get("https://law-firm-backend-yuxn.onrender.com/api/health");
