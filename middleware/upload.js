@@ -14,11 +14,10 @@ const storage = multer.diskStorage({
         cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
-        // Clean filename: remove spaces, add timestamp
-        const ext = path.extname(file.originalname);
-        const baseName = path.basename(file.originalname, ext).replace(/\s+/g, '-');
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        cb(null, baseName + "-" + uniqueSuffix + ext);
+        // শুধু আসল নাম রাখুন - কোনো suffix যোগ করবেন না
+        // কিন্তু একই নামের ফাইল থাকলে overwrite হবে
+        const originalName = file.originalname;
+        cb(null, originalName);
     },
 });
 
