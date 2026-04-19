@@ -7,7 +7,7 @@ const path = require("path");
 const router = express.Router();
 
 // Your actual domain - NO 'api.' subdomain
-const BASE_URL = "https://kormordon.com";
+const BASE_URL = "https://api.kormordon.com";
 
 // Get all attorneys
 router.get("/", async (req, res) => {
