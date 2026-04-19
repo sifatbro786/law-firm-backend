@@ -6,6 +6,17 @@ const fs = require("fs");
 const path = require("path");
 const router = express.Router();
 
+// Your backend API URL
+const BASE_URL = "https://api.kormordon.com";
+
+// Helper function to get full image URL
+const getFullImageUrl = (filename) => {
+    if (!filename) return null;
+    // If already a full URL, return as is
+    if (filename.startsWith('http')) return filename;
+    return `${BASE_URL}/uploads/${filename}`;
+};
+
 // Get all case studies (public)
 router.get("/", async (req, res) => {
     try {
@@ -46,15 +57,19 @@ router.get("/admin/all", auth, async (req, res) => {
     }
 });
 
-// Create case study (admin only) - FIXED
+// Create case study (admin only)
 router.post("/", auth, upload.single("image"), async (req, res) => {
     try {
+        console.log("=== CREATE CASE STUDY ===");
+        console.log("File:", req.file);
+        
         const caseStudyData = JSON.parse(req.body.data);
 
-        // Handle image upload
+        // Handle image upload - Save FULL URL in database
         if (req.file) {
-            caseStudyData.image = `/uploads/${req.file.filename}`;
-            console.log("Image saved at:", caseStudyData.image);
+            const fullImageUrl = getFullImageUrl(req.file.filename);
+            caseStudyData.image = fullImageUrl;
+            console.log("Full URL saved to database:", caseStudyData.image);
         } else {
             console.log("No image uploaded");
             caseStudyData.image = null;
@@ -63,6 +78,7 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
         const caseStudy = new CaseStudy(caseStudyData);
         await caseStudy.save();
 
+        console.log("Case study created with ID:", caseStudy._id);
         res.status(201).json(caseStudy);
     } catch (error) {
         console.error("Create case study error:", error);
@@ -70,9 +86,13 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
     }
 });
 
-// Update case study (admin only) - FIXED
+// Update case study (admin only)
 router.put("/:id", auth, upload.single("image"), async (req, res) => {
     try {
+        console.log("=== UPDATE CASE STUDY ===");
+        console.log("ID:", req.params.id);
+        console.log("Has file:", !!req.file);
+        
         const caseStudyData = JSON.parse(req.body.data);
         const existingCaseStudy = await CaseStudy.findById(req.params.id);
 
@@ -80,43 +100,48 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
             return res.status(404).json({ error: "Case study not found" });
         }
 
-        // Handle image logic
-        let finalImagePath = existingCaseStudy.image;
+        let finalImageUrl = existingCaseStudy.image;
 
         // Case 1: Remove existing image
         if (caseStudyData.removeImage === true) {
             console.log("Removing existing image");
             if (existingCaseStudy.image) {
-                const oldImagePath = path.join(__dirname, "..", existingCaseStudy.image);
+                // Extract filename from URL
+                const filename = path.basename(existingCaseStudy.image);
+                const oldImagePath = path.join(__dirname, "..", "uploads", filename);
                 if (fs.existsSync(oldImagePath)) {
                     fs.unlinkSync(oldImagePath);
                     console.log("Deleted old image:", oldImagePath);
                 }
             }
-            finalImagePath = null;
+            finalImageUrl = null;
         }
 
         // Case 2: Upload new image (this takes priority)
         if (req.file) {
             console.log("Uploading new image:", req.file.filename);
+            
             // Delete old image if exists and not already deleted
             if (existingCaseStudy.image && !caseStudyData.removeImage) {
-                const oldImagePath = path.join(__dirname, "..", existingCaseStudy.image);
+                const oldFilename = path.basename(existingCaseStudy.image);
+                const oldImagePath = path.join(__dirname, "..", "uploads", oldFilename);
                 if (fs.existsSync(oldImagePath)) {
                     fs.unlinkSync(oldImagePath);
                     console.log("Deleted old image before new upload");
                 }
             }
-            finalImagePath = `/uploads/${req.file.filename}`;
+            
+            // Save FULL URL to database
+            finalImageUrl = getFullImageUrl(req.file.filename);
         }
 
         // Update the image field in the data
-        caseStudyData.image = finalImagePath;
+        caseStudyData.image = finalImageUrl;
 
         // Remove temporary flag
         delete caseStudyData.removeImage;
 
-        console.log("Final image path to save:", caseStudyData.image);
+        console.log("Final full URL to save:", caseStudyData.image);
 
         // Update all fields explicitly
         const updatedCaseStudy = await CaseStudy.findByIdAndUpdate(
@@ -137,6 +162,7 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
             { new: true, runValidators: true },
         );
 
+        console.log("Update successful. Image URL in DB:", updatedCaseStudy.image);
         res.json(updatedCaseStudy);
     } catch (error) {
         console.error("Update case study error:", error);
@@ -154,7 +180,9 @@ router.delete("/:id", auth, async (req, res) => {
 
         // Delete associated image file
         if (caseStudy.image) {
-            const imagePath = path.join(__dirname, "..", caseStudy.image);
+            // Extract filename from URL
+            const filename = path.basename(caseStudy.image);
+            const imagePath = path.join(__dirname, "..", "uploads", filename);
             if (fs.existsSync(imagePath)) {
                 fs.unlinkSync(imagePath);
                 console.log("Deleted image file:", imagePath);
@@ -164,6 +192,7 @@ router.delete("/:id", auth, async (req, res) => {
         await CaseStudy.findByIdAndDelete(req.params.id);
         res.json({ message: "Case study deleted successfully" });
     } catch (error) {
+        console.error("Delete case study error:", error);
         res.status(500).json({ error: error.message });
     }
 });
