@@ -2,15 +2,29 @@ const express = require("express");
 const Attorney = require("../models/Attorney");
 const auth = require("../middleware/auth");
 const upload = require("../middleware/upload");
+const { getFullImageUrl } = require("../middleware/upload"); // 👈 ইম্পোর্ট করুন
 const fs = require("fs");
 const path = require("path");
 const router = express.Router();
+
+// হেল্পার ফাংশন - attorney ডাটায় সম্পূর্ণ URL যোগ করার জন্য
+const addFullImageUrls = (attorney) => {
+    const attorneyObj = attorney.toObject ? attorney.toObject() : attorney;
+    if (attorneyObj.image) {
+        attorneyObj.imageUrl = getFullImageUrl(attorneyObj.image);
+        // চাইলে original image path রেখেও দিতে পারেন
+        // attorneyObj.imagePath = attorneyObj.image;
+    }
+    return attorneyObj;
+};
 
 // Get all attorneys
 router.get("/", async (req, res) => {
     try {
         const attorneys = await Attorney.find().sort("name");
-        res.json(attorneys);
+        // প্রতিটি attorney-তে সম্পূর্ণ URL যোগ করুন
+        const attorneysWithUrls = attorneys.map(attorney => addFullImageUrls(attorney));
+        res.json(attorneysWithUrls);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -23,7 +37,8 @@ router.get("/:id", async (req, res) => {
         if (!attorney) {
             return res.status(404).json({ error: "Attorney not found" });
         }
-        res.json(attorney);
+        const attorneyWithUrl = addFullImageUrls(attorney);
+        res.json(attorneyWithUrl);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -40,6 +55,7 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
         
         // Handle image upload
         if (req.file) {
+            // শুধু relative path সংরক্ষণ করুন (ডাটাবেসে)
             attorneyData.image = `/uploads/${req.file.filename}`;
             console.log("Image saved at:", attorneyData.image);
         } else {
@@ -48,16 +64,17 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
         
         const attorney = new Attorney(attorneyData);
         await attorney.save();
-        console.log("Attorney created with ID:", attorney._id);
         
-        res.status(201).json(attorney);
+        // Response-এ সম্পূর্ণ URL দিন
+        const attorneyWithUrl = addFullImageUrls(attorney);
+        res.status(201).json(attorneyWithUrl);
     } catch (error) {
         console.error("Create attorney error:", error);
         res.status(400).json({ error: error.message });
     }
 });
 
-// Update attorney (admin only) - FIXED VERSION
+// Update attorney (admin only)
 router.put("/:id", auth, upload.single("image"), async (req, res) => {
     try {
         console.log("=== UPDATE ATTORNEY ===");
@@ -76,10 +93,9 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
             return res.status(404).json({ error: "Attorney not found" });
         }
         
-        // CRITICAL FIX: First, handle the image path properly
-        let finalImagePath = existingAttorney.image; // Default to existing
+        let finalImagePath = existingAttorney.image;
         
-        // Case 1: Remove existing image
+        // Remove existing image
         if (attorneyData.removeImage === true) {
             console.log("Removing existing image");
             if (existingAttorney.image) {
@@ -92,11 +108,10 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
             finalImagePath = null;
         }
         
-        // Case 2: Upload new image (this takes priority over remove)
+        // Upload new image
         if (req.file) {
             console.log("Uploading new image:", req.file.filename);
             
-            // Delete old image if exists (and not already deleted)
             if (existingAttorney.image && !attorneyData.removeImage) {
                 const oldImagePath = path.join(__dirname, "..", existingAttorney.image);
                 if (fs.existsSync(oldImagePath)) {
@@ -107,15 +122,11 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
             finalImagePath = `/uploads/${req.file.filename}`;
         }
         
-        // Update the image field in attorneyData
         attorneyData.image = finalImagePath;
-        
-        // Remove temporary flag
         delete attorneyData.removeImage;
         
         console.log("Final image path to save:", attorneyData.image);
         
-        // Update all fields including image
         const updatedAttorney = await Attorney.findByIdAndUpdate(
             req.params.id,
             {
@@ -127,15 +138,16 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
                 phone: attorneyData.phone,
                 education: attorneyData.education,
                 barCertification: attorneyData.barCertification,
-                image: attorneyData.image  // Explicitly set image field
+                image: attorneyData.image
             },
             { new: true, runValidators: true }
         );
         
         console.log("Update successful. New image:", updatedAttorney.image);
-        console.log("=== END UPDATE ===");
         
-        res.json(updatedAttorney);
+        // Response-এ সম্পূর্ণ URL দিন
+        const attorneyWithUrl = addFullImageUrls(updatedAttorney);
+        res.json(attorneyWithUrl);
     } catch (error) {
         console.error("Update attorney error:", error);
         res.status(400).json({ error: error.message });
@@ -150,7 +162,6 @@ router.delete("/:id", auth, async (req, res) => {
             return res.status(404).json({ error: "Attorney not found" });
         }
         
-        // Delete associated image file
         if (attorney.image) {
             const imagePath = path.join(__dirname, "..", attorney.image);
             if (fs.existsSync(imagePath)) {

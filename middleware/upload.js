@@ -2,7 +2,6 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// নিশ্চিত করুন uploads ফোল্ডার exists
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
@@ -14,8 +13,6 @@ const storage = multer.diskStorage({
         cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
-        // শুধু আসল নাম রাখুন - কোনো suffix যোগ করবেন না
-        // কিন্তু একই নামের ফাইল থাকলে overwrite হবে
         const originalName = file.originalname;
         cb(null, originalName);
     },
@@ -35,8 +32,17 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: fileFilter,
 });
 
+
+const getFullImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    const baseUrl = process.env.BASE_URL || 'https://api.kormondon.com';
+    return `${baseUrl}${imagePath}`;
+};
+
 module.exports = upload;
+module.exports.getFullImageUrl = getFullImageUrl;
