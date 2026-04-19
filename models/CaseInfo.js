@@ -61,8 +61,9 @@ const caseInfoSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
+// Fix pre-save validation
 caseInfoSchema.pre("save", function (next) {
-    if (this.isReferenced && (!this.referenceName || !this.referenceMobileNo)) {
+    if (this.isReferenced === true && (!this.referenceName || !this.referenceMobileNo)) {
         return next(
             new Error("Reference name and mobile number are required when isReferenced is true"),
         );

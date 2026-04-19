@@ -8,9 +8,10 @@ const auth = require("../middleware/auth");
 const router = express.Router();
 
 // Ensure upload directory exists
-const uploadDir = "uploads/cases";
+const uploadDir = path.join(__dirname, "../uploads/cases");
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
+    console.log("Created uploads directory:", uploadDir);
 }
 
 // Configure multer for file uploads
@@ -20,7 +21,9 @@ const storage = multer.diskStorage({
     },
     filename: (req, file, cb) => {
         const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
+        const ext = path.extname(file.originalname);
+        const baseName = path.basename(file.originalname, ext).replace(/\s+/g, "-");
+        cb(null, "case-" + baseName + "-" + uniqueSuffix + ext);
     },
 });
 
@@ -62,7 +65,6 @@ router.get("/", auth, async (req, res) => {
         const { search, page = 1, limit = 10 } = req.query;
         let query = {};
 
-        // Search functionality
         if (search) {
             query = {
                 $or: [
@@ -108,54 +110,95 @@ router.get("/:id", auth, async (req, res) => {
     }
 });
 
-// Create new case info with file upload (admin only)
+// Create new case info with file upload (admin only) - FIXED
 router.post("/", auth, upload.array("files", 10), async (req, res) => {
     try {
+        console.log("=== CREATE CASE INFO ===");
+        console.log("Files received:", req.files ? req.files.length : 0);
+
         const fileData =
             req.files?.map((file) => ({
                 originalName: file.originalname,
                 fileName: file.filename,
-                filePath: file.path,
+                // শুধু relative path সংরক্ষণ করুন, full path না
+                filePath: `/uploads/cases/${file.filename}`, // IMPORTANT: শুধু relative path
                 fileType: file.mimetype,
                 fileSize: file.size,
+                uploadedAt: new Date(),
             })) || [];
 
-        const caseInfo = new CaseInfo({
-            ...req.body,
+        const caseInfoData = {
+            caseNumber: req.body.caseNumber,
+            district: req.body.district,
+            clientName: req.body.clientName,
+            clientAddress: req.body.clientAddress,
+            clientMobileNo: req.body.clientMobileNo,
+            description: req.body.description,
+            isReferenced: req.body.isReferenced === "true" || req.body.isReferenced === true,
+            referenceName: req.body.referenceName || "",
+            referenceMobileNo: req.body.referenceMobileNo || "",
             files: fileData,
-        });
+        };
 
+        const caseInfo = new CaseInfo(caseInfoData);
         await caseInfo.save();
+
         res.status(201).json(caseInfo);
     } catch (error) {
+        console.error("Create case info error:", error);
         res.status(400).json({ error: error.message });
     }
 });
 
-// Update case info with optional file upload (admin only)
+// Update case info with optional file upload (admin only) - FIXED
 router.put("/:id", auth, upload.array("files", 10), async (req, res) => {
     try {
-        const caseInfo = await CaseInfo.findById(req.params.id);
+        console.log("=== UPDATE CASE INFO ===");
+        console.log("ID:", req.params.id);
 
+        const caseInfo = await CaseInfo.findById(req.params.id);
         if (!caseInfo) {
             return res.status(404).json({ error: "Case info not found" });
         }
 
         // Update basic fields
-        Object.keys(req.body).forEach((key) => {
-            if (key !== "files" && key !== "existingFiles") {
-                caseInfo[key] = req.body[key];
-            }
-        });
+        caseInfo.caseNumber = req.body.caseNumber || caseInfo.caseNumber;
+        caseInfo.district = req.body.district || caseInfo.district;
+        caseInfo.clientName = req.body.clientName || caseInfo.clientName;
+        caseInfo.clientAddress = req.body.clientAddress || caseInfo.clientAddress;
+        caseInfo.clientMobileNo = req.body.clientMobileNo || caseInfo.clientMobileNo;
+        caseInfo.description = req.body.description || caseInfo.description;
+        caseInfo.isReferenced = req.body.isReferenced === "true" || req.body.isReferenced === true;
+        caseInfo.referenceName = req.body.referenceName || "";
+        caseInfo.referenceMobileNo = req.body.referenceMobileNo || "";
 
-        // Add new files if uploaded
+        // Handle file deletions
+        if (req.body.removeFiles) {
+            const filesToRemove = JSON.parse(req.body.removeFiles);
+            const sortedIndices = [...filesToRemove].sort((a, b) => b - a);
+            for (const fileIndex of sortedIndices) {
+                if (caseInfo.files[fileIndex]) {
+                    const fileToDelete = caseInfo.files[fileIndex];
+                    // Delete physical file
+                    const physicalPath = path.join(__dirname, "..", fileToDelete.filePath);
+                    if (fs.existsSync(physicalPath)) {
+                        fs.unlinkSync(physicalPath);
+                        console.log("Deleted file:", physicalPath);
+                    }
+                    caseInfo.files.splice(fileIndex, 1);
+                }
+            }
+        }
+
+        // Add new files - শুধু relative path সংরক্ষণ করুন
         if (req.files && req.files.length > 0) {
             const newFiles = req.files.map((file) => ({
                 originalName: file.originalname,
                 fileName: file.filename,
-                filePath: file.path,
+                filePath: `/uploads/cases/${file.filename}`, // IMPORTANT: শুধু relative path
                 fileType: file.mimetype,
                 fileSize: file.size,
+                uploadedAt: new Date(),
             }));
             caseInfo.files = [...caseInfo.files, ...newFiles];
         }
@@ -163,6 +206,7 @@ router.put("/:id", auth, upload.array("files", 10), async (req, res) => {
         await caseInfo.save();
         res.json(caseInfo);
     } catch (error) {
+        console.error("Update case info error:", error);
         res.status(400).json({ error: error.message });
     }
 });
@@ -170,10 +214,20 @@ router.put("/:id", auth, upload.array("files", 10), async (req, res) => {
 // Delete case info (admin only)
 router.delete("/:id", auth, async (req, res) => {
     try {
-        const caseInfo = await CaseInfo.findByIdAndDelete(req.params.id);
+        const caseInfo = await CaseInfo.findById(req.params.id);
         if (!caseInfo) {
             return res.status(404).json({ error: "Case info not found" });
         }
+
+        // Delete all associated files
+        for (const file of caseInfo.files) {
+            if (file.filePath && fs.existsSync(file.filePath)) {
+                fs.unlinkSync(file.filePath);
+                console.log("Deleted file:", file.filePath);
+            }
+        }
+
+        await CaseInfo.findByIdAndDelete(req.params.id);
         res.json({ message: "Case info deleted successfully" });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -193,20 +247,25 @@ router.delete("/:id/files/:fileIndex", auth, async (req, res) => {
             return res.status(404).json({ error: "File not found" });
         }
 
-        // Delete physical file
+        // Delete physical file using relative path
         const fileToDelete = caseInfo.files[fileIndex];
         if (fileToDelete && fileToDelete.filePath) {
-            try {
-                fs.unlinkSync(fileToDelete.filePath);
-            } catch (err) {
-                console.error("Error deleting file:", err);
+            const physicalPath = path.join(__dirname, "..", fileToDelete.filePath);
+            if (fs.existsSync(physicalPath)) {
+                fs.unlinkSync(physicalPath);
+                console.log("Deleted file:", physicalPath);
             }
         }
 
         caseInfo.files.splice(fileIndex, 1);
         await caseInfo.save();
-        res.json({ message: "File deleted successfully" });
+
+        res.json({
+            message: "File deleted successfully",
+            files: caseInfo.files,
+        });
     } catch (error) {
+        console.error("Delete file error:", error);
         res.status(500).json({ error: error.message });
     }
 });
