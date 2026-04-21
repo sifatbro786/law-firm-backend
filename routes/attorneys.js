@@ -12,13 +12,48 @@ const BASE_URL = "https://api.kormordon.com";
 // Get all attorneys
 router.get("/", async (req, res) => {
     try {
-        const attorneys = await Attorney.find().sort("order name");
+        const attorneys = await Attorney.find().sort({ order: 1, name: 1 });
         res.json(attorneys);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
-// Get single attorney
+
+// IMPORTANT: Specific routes MUST come before parameterized routes
+// Bulk update attorney orders (admin only)
+router.put("/reorder", auth, async (req, res) => {
+    try {
+        console.log("=== REORDER ATTORNEYS ===");
+        const { orders } = req.body; // [{ id: "attorney_id", order: 0 }, ...]
+        
+        if (!Array.isArray(orders)) {
+            return res.status(400).json({ error: "orders must be an array" });
+        }
+        
+        console.log(`Reordering ${orders.length} attorneys`);
+        
+        // Bulk update multiple attorneys
+        const bulkOps = orders.map(item => ({
+            updateOne: {
+                filter: { _id: item.id },
+                update: { order: item.order }
+            }
+        }));
+        
+        await Attorney.bulkWrite(bulkOps);
+        
+        // Return updated attorneys sorted by new order
+        const updatedAttorneys = await Attorney.find().sort({ order: 1, name: 1 });
+        console.log("Reorder completed successfully");
+        res.json(updatedAttorneys);
+        
+    } catch (error) {
+        console.error("Reorder attorneys error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get single attorney - THIS MUST COME AFTER specific routes
 router.get("/:id", async (req, res) => {
     try {
         const attorney = await Attorney.findById(req.params.id);
@@ -49,9 +84,10 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
             console.log("No image uploaded");
         }
         
-        // সবার শেষে যোগ করার জন্য সর্বোচ্চ order + 1 সেট করুন
-        const maxOrderAttorney = await Attorney.findOne().sort("-order");
-        attorneyData.order = maxOrderAttorney ? maxOrderAttorney.order + 1 : 0;
+        // Get the highest order number and add 1
+        const lastAttorney = await Attorney.findOne().sort('-order');
+        attorneyData.order = lastAttorney ? lastAttorney.order + 1 : 0;
+        console.log("New attorney order:", attorneyData.order);
         
         const attorney = new Attorney(attorneyData);
         await attorney.save();
@@ -64,12 +100,23 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
     }
 });
 
-// Update attorney (admin only)
-// Update attorney (admin only)
+// Update attorney (admin only) - THIS MUST COME AFTER specific routes
 router.put("/:id", auth, upload.single("image"), async (req, res) => {
     try {
         console.log("=== UPDATE ATTORNEY ===");
         console.log("ID:", req.params.id);
+        console.log("Has file:", !!req.file);
+        if (req.file) {
+            console.log("File name:", req.file.filename);
+            console.log("File path:", req.file.path);
+        }
+        console.log("Request body data:", req.body.data);
+        
+        // Check if this is the reorder route (should not happen now)
+        if (req.params.id === "reorder") {
+            console.error("ERROR: reorder route being handled by update route!");
+            return res.status(400).json({ error: "Invalid attorney ID" });
+        }
         
         const attorneyData = JSON.parse(req.body.data);
         const existingAttorney = await Attorney.findById(req.params.id);
@@ -84,6 +131,7 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
         if (attorneyData.removeImage === true) {
             console.log("Removing existing image");
             if (existingAttorney.image) {
+                // Extract filename from URL
                 const filename = path.basename(existingAttorney.image);
                 const oldImagePath = path.join(__dirname, "..", "uploads", filename);
                 if (fs.existsSync(oldImagePath)) {
@@ -98,6 +146,7 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
         if (req.file) {
             console.log("Uploading new image:", req.file.filename);
             
+            // Delete old image file
             if (existingAttorney.image && !attorneyData.removeImage) {
                 const oldFilename = path.basename(existingAttorney.image);
                 const oldImagePath = path.join(__dirname, "..", "uploads", oldFilename);
@@ -107,6 +156,7 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
                 }
             }
             
+            // Save FULL URL to database
             finalImageUrl = `${BASE_URL}/uploads/${req.file.filename}`;
         }
         
@@ -114,8 +164,10 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
         attorneyData.image = finalImageUrl;
         delete attorneyData.removeImage;
         
-        // IMPORTANT: Preserve the existing order, don't update it
-        // Only update the fields that should be changed
+        console.log("Final full URL to save:", attorneyData.image);
+        
+        // IMPORTANT: Preserve the existing order
+        // Don't include order in the update
         const updatedAttorney = await Attorney.findByIdAndUpdate(
             req.params.id,
             {
@@ -127,15 +179,16 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
                 phone: attorneyData.phone,
                 education: attorneyData.education,
                 barCertification: attorneyData.barCertification,
-                image: attorneyData.image,
-                // order: existingAttorney.order // Keep the same order
+                image: attorneyData.image
+                // order field is NOT updated here - it stays the same
             },
             { new: true, runValidators: true }
         );
         
         console.log("Update successful. Order preserved:", updatedAttorney.order);
-        res.json(updatedAttorney);
+        console.log("=== END UPDATE ===");
         
+        res.json(updatedAttorney);
     } catch (error) {
         console.error("Update attorney error:", error);
         res.status(400).json({ error: error.message });
@@ -152,6 +205,7 @@ router.delete("/:id", auth, async (req, res) => {
         
         // Delete associated image file
         if (attorney.image) {
+            // Extract filename from URL
             const filename = path.basename(attorney.image);
             const imagePath = path.join(__dirname, "..", "uploads", filename);
             if (fs.existsSync(imagePath)) {
@@ -163,7 +217,7 @@ router.delete("/:id", auth, async (req, res) => {
         const deletedOrder = attorney.order;
         await Attorney.findByIdAndDelete(req.params.id);
         
-        // মুছে ফেলার পরে বাকি অ্যাটর্নিদের order পুনরায় সাজান (ঐচ্ছিক)
+        // Reorder remaining attorneys (decrement orders greater than deleted order)
         await Attorney.updateMany(
             { order: { $gt: deletedOrder } },
             { $inc: { order: -1 } }
@@ -175,34 +229,5 @@ router.delete("/:id", auth, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
-router.put("/reorder", auth, async (req, res) => {
-    try {
-        const { orders } = req.body; // [{ id: "attorney_id", order: 0 }, ...]
-        
-        if (!Array.isArray(orders)) {
-            return res.status(400).json({ error: "orders must be an array" });
-        }
-        
-        // Bulk update multiple attorneys
-        const bulkOps = orders.map(item => ({
-            updateOne: {
-                filter: { _id: item.id },
-                update: { order: item.order }
-            }
-        }));
-        
-        await Attorney.bulkWrite(bulkOps);
-        
-        // Return updated attorneys sorted by new order
-        const updatedAttorneys = await Attorney.find().sort("order name");
-        res.json(updatedAttorneys);
-        
-    } catch (error) {
-        console.error("Reorder attorneys error:", error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
 
 module.exports = router;
