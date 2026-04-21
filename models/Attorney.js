@@ -17,6 +17,11 @@ const attorneySchema = new mongoose.Schema(
         phone: String,
         education: [String],
         barCertification: String,
+        order: {
+            type: Number,
+            default: 0,  
+            index: true  
+        }
     },
     { timestamps: true },
 );
