@@ -65,31 +65,25 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
 });
 
 // Update attorney (admin only)
+// Update attorney (admin only)
 router.put("/:id", auth, upload.single("image"), async (req, res) => {
     try {
         console.log("=== UPDATE ATTORNEY ===");
         console.log("ID:", req.params.id);
-        console.log("Has file:", !!req.file);
-        if (req.file) {
-            console.log("File name:", req.file.filename);
-            console.log("File path:", req.file.path);
-        }
-        console.log("Request body data:", req.body.data);
-
+        
         const attorneyData = JSON.parse(req.body.data);
         const existingAttorney = await Attorney.findById(req.params.id);
-
+        
         if (!existingAttorney) {
             return res.status(404).json({ error: "Attorney not found" });
         }
-
+        
         let finalImageUrl = existingAttorney.image;
-
+        
         // Case 1: Remove existing image
         if (attorneyData.removeImage === true) {
             console.log("Removing existing image");
             if (existingAttorney.image) {
-                // Extract filename from URL
                 const filename = path.basename(existingAttorney.image);
                 const oldImagePath = path.join(__dirname, "..", "uploads", filename);
                 if (fs.existsSync(oldImagePath)) {
@@ -99,12 +93,11 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
             }
             finalImageUrl = null;
         }
-
+        
         // Case 2: Upload new image
         if (req.file) {
             console.log("Uploading new image:", req.file.filename);
-
-            // Delete old image file
+            
             if (existingAttorney.image && !attorneyData.removeImage) {
                 const oldFilename = path.basename(existingAttorney.image);
                 const oldImagePath = path.join(__dirname, "..", "uploads", oldFilename);
@@ -113,18 +106,16 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
                     console.log("Deleted old image file");
                 }
             }
-
-            // Save FULL URL to database
+            
             finalImageUrl = `${BASE_URL}/uploads/${req.file.filename}`;
         }
-
+        
         // Update the image field
         attorneyData.image = finalImageUrl;
         delete attorneyData.removeImage;
-
-        console.log("Final full URL to save:", attorneyData.image);
-
-        // Update all fields
+        
+        // IMPORTANT: Preserve the existing order, don't update it
+        // Only update the fields that should be changed
         const updatedAttorney = await Attorney.findByIdAndUpdate(
             req.params.id,
             {
@@ -136,15 +127,15 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
                 phone: attorneyData.phone,
                 education: attorneyData.education,
                 barCertification: attorneyData.barCertification,
-                image: attorneyData.image
+                image: attorneyData.image,
+                // order: existingAttorney.order // Keep the same order
             },
             { new: true, runValidators: true }
         );
-
-        console.log("Update successful. Image URL in DB:", updatedAttorney.image);
-        console.log("=== END UPDATE ===");
-
+        
+        console.log("Update successful. Order preserved:", updatedAttorney.order);
         res.json(updatedAttorney);
+        
     } catch (error) {
         console.error("Update attorney error:", error);
         res.status(400).json({ error: error.message });
