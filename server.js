@@ -25,24 +25,23 @@ const allowedOrigins = [
     "http://localhost:5173",
     "https://neela-law-firm.vercel.app",
     "https://neela-law-firm-git-main.vercel.app",
+    "https://strsltd.com",
 ];
 
 app.use(
     cors({
         origin: function (origin, callback) {
-
             if (!origin) return callback(null, true);
             if (allowedOrigins.indexOf(origin) !== -1) {
                 return callback(null, true);
             } else {
                 console.log("Blocked origin:", origin);
-                return callback(null, true); 
+                return callback(null, true);
             }
         },
         credentials: true,
     }),
 );
-
 
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -52,7 +51,6 @@ if (!fs.existsSync(uploadsDir)) {
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-
 app.use("/api/auth", authRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/attorneys", attorneyRoutes);
@@ -61,7 +59,6 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/case-studies", caseStudyRoutes);
 app.use("/api/case-info", caseInfoRoutes);
 
-
 app.get("/api/health", (req, res) => {
     res.status(200).json({
         status: "OK",
@@ -69,7 +66,6 @@ app.get("/api/health", (req, res) => {
         timestamp: new Date(),
     });
 });
-
 
 const startServer = async () => {
     try {
@@ -85,7 +81,6 @@ const startServer = async () => {
         process.exit(1);
     }
 };
-
 
 cron.schedule("*/10 * * * *", async () => {
     try {
