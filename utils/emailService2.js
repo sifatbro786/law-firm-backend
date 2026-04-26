@@ -7,7 +7,7 @@ const transporter = nodemailer.createTransport({
     port: 587,
     secure: false,
     auth: {
-        user: process.env.EMAIL_USER,
+        user: process.env.STR_USER,
         pass: process.env.EMAIL_PASS,
     },
     tls: {
@@ -260,7 +260,7 @@ const generateAdminEmailTemplate = (data) => {
                     <p><strong>STR Solutions Limited</strong></p>
                     <p>970 East Shewrapara, Dhaka 1216, Bangladesh</p>
                     <p>📞 BD: +880 1332-802026 | EU: +39 344 7792783</p>
-                    <p>✉️ ${process.env.EMAIL_USER}</p>
+                    <p>✉️ ${process.env.STR_USER}</p>
                     <p style="margin-top: 15px; font-size: 12px;">
                         This is an automated notification from your website contact form.
                     </p>
@@ -471,8 +471,8 @@ const sendContactEmail = async (data) => {
     try {
         // Email to admin
         const adminMailOptions = {
-            from: `"STR Solutions Contact" <${process.env.EMAIL_USER}>`,
-            to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
+            from: `"STR Solutions Contact" <${process.env.STR_USER}>`,
+            to: process.env.ADMIN_EMAIL || process.env.STR_USER,
             subject: `🔔 New Contact Form Submission from ${data.name}`,
             html: generateAdminEmailTemplate(data),
             replyTo: data.email,
@@ -480,7 +480,7 @@ const sendContactEmail = async (data) => {
 
         // Email to customer (acknowledgment)
         const customerMailOptions = {
-            from: `"STR Solutions" <${process.env.EMAIL_USER}>`,
+            from: `"STR Solutions" <${process.env.STR_USER}>`,
             to: data.email,
             subject: "✨ Thank you for contacting STR Solutions",
             html: generateCustomerEmailTemplate(data),
