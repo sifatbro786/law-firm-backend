@@ -15,6 +15,8 @@ const contactRoutes = require("./routes/contact");
 const bookingRoutes = require("./routes/bookings");
 const caseStudyRoutes = require("./routes/caseStudies");
 const caseInfoRoutes = require("./routes/caseInfo");
+const clientRoutes = require("./routes/clients");
+const galleryRoutes = require("./routes/gallery");
 
 dotenv.config();
 
@@ -58,6 +60,8 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/case-studies", caseStudyRoutes);
 app.use("/api/case-info", caseInfoRoutes);
+app.use("/api/clients", clientRoutes);
+app.use("/api/gallery", galleryRoutes);
 
 app.get("/api/health", (req, res) => {
     res.status(200).json({
