@@ -20,11 +20,14 @@ const serviceSchema = new mongoose.Schema(
             required: true,
             default: "",
         },
-        icon: String,
+        image: {
+            type: String,
+            default: "",
+        },
         order: {
             type: Number,
             default: 0,
-            index: true  // For faster sorting
+            index: true, // For faster sorting
         },
     },
     { timestamps: true },

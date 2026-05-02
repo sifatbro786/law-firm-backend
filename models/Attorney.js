@@ -12,6 +12,14 @@ const attorneySchema = new mongoose.Schema(
             required: true,
         },
         specialization: [String],
+        designation: {
+            type: String,
+            default: "",
+        },
+        quote: {
+            type: String,
+            default: "",
+        },
         experience: Number,
         email: String,
         phone: String,
@@ -19,9 +27,9 @@ const attorneySchema = new mongoose.Schema(
         barCertification: String,
         order: {
             type: Number,
-            default: 0,  
-            index: true  
-        }
+            default: 0,
+            index: true,
+        },
     },
     { timestamps: true },
 );

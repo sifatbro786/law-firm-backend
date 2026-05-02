@@ -6,9 +6,6 @@ const fs = require("fs");
 const path = require("path");
 const router = express.Router();
 
-// Your actual domain - NO 'api.' subdomain
-const BASE_URL = "https://api.kormordon.com";
-
 // Get all attorneys
 router.get("/", async (req, res) => {
     try {
@@ -25,28 +22,27 @@ router.put("/reorder", auth, async (req, res) => {
     try {
         console.log("=== REORDER ATTORNEYS ===");
         const { orders } = req.body; // [{ id: "attorney_id", order: 0 }, ...]
-        
+
         if (!Array.isArray(orders)) {
             return res.status(400).json({ error: "orders must be an array" });
         }
-        
+
         console.log(`Reordering ${orders.length} attorneys`);
-        
+
         // Bulk update multiple attorneys
-        const bulkOps = orders.map(item => ({
+        const bulkOps = orders.map((item) => ({
             updateOne: {
                 filter: { _id: item.id },
-                update: { order: item.order }
-            }
+                update: { order: item.order },
+            },
         }));
-        
+
         await Attorney.bulkWrite(bulkOps);
-        
+
         // Return updated attorneys sorted by new order
         const updatedAttorneys = await Attorney.find().sort({ order: 1, name: 1 });
         console.log("Reorder completed successfully");
         res.json(updatedAttorneys);
-        
     } catch (error) {
         console.error("Reorder attorneys error:", error);
         res.status(500).json({ error: error.message });
@@ -72,27 +68,27 @@ router.post("/", auth, upload.single("image"), async (req, res) => {
         console.log("=== CREATE ATTORNEY ===");
         console.log("Body data:", req.body.data);
         console.log("File:", req.file);
-        
+
         const attorneyData = JSON.parse(req.body.data);
-        
+
         // Handle image upload - Save FULL URL in database
         if (req.file) {
-            const fullImageUrl = `${BASE_URL}/uploads/${req.file.filename}`;
+            const fullImageUrl = `/uploads/${req.file.filename}`;
             attorneyData.image = fullImageUrl;
             console.log("Full URL saved to database:", attorneyData.image);
         } else {
             console.log("No image uploaded");
         }
-        
+
         // Get the highest order number and add 1
-        const lastAttorney = await Attorney.findOne().sort('-order');
+        const lastAttorney = await Attorney.findOne().sort("-order");
         attorneyData.order = lastAttorney ? lastAttorney.order + 1 : 0;
         console.log("New attorney order:", attorneyData.order);
-        
+
         const attorney = new Attorney(attorneyData);
         await attorney.save();
         console.log("Attorney created with ID:", attorney._id);
-        
+
         res.status(201).json(attorney);
     } catch (error) {
         console.error("Create attorney error:", error);
@@ -111,22 +107,22 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
             console.log("File path:", req.file.path);
         }
         console.log("Request body data:", req.body.data);
-        
+
         // Check if this is the reorder route (should not happen now)
         if (req.params.id === "reorder") {
             console.error("ERROR: reorder route being handled by update route!");
             return res.status(400).json({ error: "Invalid attorney ID" });
         }
-        
+
         const attorneyData = JSON.parse(req.body.data);
         const existingAttorney = await Attorney.findById(req.params.id);
-        
+
         if (!existingAttorney) {
             return res.status(404).json({ error: "Attorney not found" });
         }
-        
+
         let finalImageUrl = existingAttorney.image;
-        
+
         // Case 1: Remove existing image
         if (attorneyData.removeImage === true) {
             console.log("Removing existing image");
@@ -141,11 +137,11 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
             }
             finalImageUrl = null;
         }
-        
+
         // Case 2: Upload new image
         if (req.file) {
             console.log("Uploading new image:", req.file.filename);
-            
+
             // Delete old image file
             if (existingAttorney.image && !attorneyData.removeImage) {
                 const oldFilename = path.basename(existingAttorney.image);
@@ -155,17 +151,17 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
                     console.log("Deleted old image file");
                 }
             }
-            
+
             // Save FULL URL to database
-            finalImageUrl = `${BASE_URL}/uploads/${req.file.filename}`;
+            finalImageUrl = `/uploads/${req.file.filename}`;
         }
-        
+
         // Update the image field
         attorneyData.image = finalImageUrl;
         delete attorneyData.removeImage;
-        
+
         console.log("Final full URL to save:", attorneyData.image);
-        
+
         // IMPORTANT: Preserve the existing order
         // Don't include order in the update
         const updatedAttorney = await Attorney.findByIdAndUpdate(
@@ -174,20 +170,22 @@ router.put("/:id", auth, upload.single("image"), async (req, res) => {
                 name: attorneyData.name,
                 bio: attorneyData.bio,
                 specialization: attorneyData.specialization,
+                designation: attorneyData.designation,
+                quote: attorneyData.quote,
                 experience: attorneyData.experience,
                 email: attorneyData.email,
                 phone: attorneyData.phone,
                 education: attorneyData.education,
                 barCertification: attorneyData.barCertification,
-                image: attorneyData.image
+                image: attorneyData.image,
                 // order field is NOT updated here - it stays the same
             },
-            { new: true, runValidators: true }
+            { new: true, runValidators: true },
         );
-        
+
         console.log("Update successful. Order preserved:", updatedAttorney.order);
         console.log("=== END UPDATE ===");
-        
+
         res.json(updatedAttorney);
     } catch (error) {
         console.error("Update attorney error:", error);
@@ -202,7 +200,7 @@ router.delete("/:id", auth, async (req, res) => {
         if (!attorney) {
             return res.status(404).json({ error: "Attorney not found" });
         }
-        
+
         // Delete associated image file
         if (attorney.image) {
             // Extract filename from URL
@@ -213,16 +211,13 @@ router.delete("/:id", auth, async (req, res) => {
                 console.log("Deleted image file:", imagePath);
             }
         }
-        
+
         const deletedOrder = attorney.order;
         await Attorney.findByIdAndDelete(req.params.id);
-        
+
         // Reorder remaining attorneys (decrement orders greater than deleted order)
-        await Attorney.updateMany(
-            { order: { $gt: deletedOrder } },
-            { $inc: { order: -1 } }
-        );
-        
+        await Attorney.updateMany({ order: { $gt: deletedOrder } }, { $inc: { order: -1 } });
+
         res.json({ message: "Attorney deleted successfully" });
     } catch (error) {
         console.error("Delete attorney error:", error);

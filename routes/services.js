@@ -2,6 +2,7 @@ const express = require("express");
 const Service = require("../models/Service");
 const auth = require("../middleware/auth");
 const router = express.Router();
+const upload = require("../middleware/upload");
 
 // Get all services (sorted by order)
 router.get("/", async (req, res) => {
@@ -19,28 +20,27 @@ router.put("/reorder", auth, async (req, res) => {
     try {
         console.log("=== REORDER SERVICES ===");
         const { orders } = req.body; // [{ id: "service_id", order: 0 }, ...]
-        
+
         if (!Array.isArray(orders)) {
             return res.status(400).json({ error: "orders must be an array" });
         }
-        
+
         console.log(`Reordering ${orders.length} services`);
-        
+
         // Bulk update multiple services
-        const bulkOps = orders.map(item => ({
+        const bulkOps = orders.map((item) => ({
             updateOne: {
                 filter: { _id: item.id },
-                update: { order: item.order }
-            }
+                update: { order: item.order },
+            },
         }));
-        
+
         await Service.bulkWrite(bulkOps);
-        
+
         // Return updated services sorted by new order
         const updatedServices = await Service.find().sort({ order: 1, title: 1 });
         console.log("Reorder completed successfully");
         res.json(updatedServices);
-        
     } catch (error) {
         console.error("Reorder services error:", error);
         res.status(500).json({ error: error.message });
@@ -61,60 +61,50 @@ router.get("/:slug", async (req, res) => {
 });
 
 // Create service (admin only)
-router.post("/", auth, async (req, res) => {
+router.post("/", auth, upload.single("image"), async (req, res) => {
     try {
-        // Get the highest order number and add 1
-        const lastService = await Service.findOne().sort('-order');
+        const lastService = await Service.findOne().sort("-order");
         const order = lastService ? lastService.order + 1 : 0;
-        
+
         const serviceData = {
             ...req.body,
-            order: order
+            order,
+            image: req.file ? `/uploads/${req.file.filename}` : "",
         };
-        
+
         const service = new Service(serviceData);
         await service.save();
-        console.log("Service created with order:", service.order);
-        
         res.status(201).json(service);
     } catch (error) {
-        console.error("Create service error:", error);
         res.status(400).json({ error: error.message });
     }
 });
 
 // Update service (admin only) - THIS MUST COME AFTER specific routes
-router.put("/:id", auth, async (req, res) => {
+router.put("/:id", auth, upload.single("image"), async (req, res) => {
     try {
-        // Check if this is the reorder route
         if (req.params.id === "reorder") {
-            console.error("ERROR: reorder route being handled by update route!");
             return res.status(400).json({ error: "Invalid service ID" });
         }
-        
+
         const service = await Service.findById(req.params.id);
-        if (!service) {
-            return res.status(404).json({ error: "Service not found" });
-        }
-        
-        // Create update data without the order field
+        if (!service) return res.status(404).json({ error: "Service not found" });
+
         const updateData = { ...req.body };
-        delete updateData.order; // Remove order if present in request body
-        
-        // Update the service (order field will NOT be changed)
-        const updatedService = await Service.findByIdAndUpdate(
-            req.params.id, 
-            updateData, 
-            {
-                new: true,
-                runValidators: true,
-            }
-        );
-        
-        console.log("Service updated. Order preserved:", updatedService.order);
+        delete updateData.order;
+
+        // নতুন image আসলে replace করো, না আসলে পুরনোটা রাখো
+        if (req.file) {
+            updateData.image = `/uploads/${req.file.filename}`;
+        }
+
+        const updatedService = await Service.findByIdAndUpdate(req.params.id, updateData, {
+            new: true,
+            runValidators: true,
+        });
+
         res.json(updatedService);
     } catch (error) {
-        console.error("Update service error:", error);
         res.status(400).json({ error: error.message });
     }
 });
@@ -126,16 +116,13 @@ router.delete("/:id", auth, async (req, res) => {
         if (!service) {
             return res.status(404).json({ error: "Service not found" });
         }
-        
+
         const deletedOrder = service.order;
         await Service.findByIdAndDelete(req.params.id);
-        
+
         // Reorder remaining services (decrement orders greater than deleted order)
-        await Service.updateMany(
-            { order: { $gt: deletedOrder } },
-            { $inc: { order: -1 } }
-        );
-        
+        await Service.updateMany({ order: { $gt: deletedOrder } }, { $inc: { order: -1 } });
+
         console.log(`Service deleted. Reordered remaining services`);
         res.json({ message: "Service deleted successfully" });
     } catch (error) {
