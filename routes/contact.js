@@ -5,10 +5,10 @@ const router = express.Router();
 
 router.post("/", async (req, res) => {
     try {
-        const { name, companyName, email, phoneNumber, details } = req.body;
+        const { name, email, phone, message } = req.body;
 
         // Validate required fields
-        if (!name || !email || !phoneNumber || !details) {
+        if (!name || !email || !phone || !message) {
             return res.status(400).json({
                 success: false,
                 message: "Please fill in all required fields",
@@ -27,20 +27,18 @@ router.post("/", async (req, res) => {
         // Save to database
         const contact = new Contact({
             name,
-            companyName: companyName || "",
             email,
-            phone: phoneNumber,
-            message: details,
+            phone,
+            message,
         });
         await contact.save();
 
         // Send email notification to admin
         await sendContactEmail({
             name,
-            companyName,
             email,
-            phoneNumber,
-            details,
+            phone,
+            message,
         });
 
         res.status(201).json({

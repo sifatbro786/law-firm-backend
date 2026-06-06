@@ -4,15 +4,18 @@ require("dotenv").config();
 // Create transporter
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-    tls: {
-        rejectUnauthorized: false,
-    },
+        port: 465,
+        secure: true,          // port 465 এর জন্য true
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+        tls: {
+            rejectUnauthorized: false,
+        },
+        connectionTimeout: 15000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
 });
 
 // Verify transporter on startup
@@ -209,16 +212,6 @@ const generateAdminEmailTemplate = (data) => {
                             <div class="info-label">👤 Full Name</div>
                             <div class="info-value">${data.name}</div>
                         </div>
-                        ${
-                            data.companyName
-                                ? `
-                        <div class="info-row">
-                            <div class="info-label">🏢 Company Name</div>
-                            <div class="info-value">${data.companyName}</div>
-                        </div>
-                        `
-                                : ""
-                        }
                         <div class="info-row">
                             <div class="info-label">📧 Email Address</div>
                             <div class="info-value">
@@ -228,7 +221,7 @@ const generateAdminEmailTemplate = (data) => {
                         <div class="info-row">
                             <div class="info-label">📞 Phone Number</div>
                             <div class="info-value">
-                                <a href="tel:${data.phoneNumber}" style="color: #3b82f6;">${data.phoneNumber}</a>
+                                <a href="tel:${data.phone}" ...>${data.phone}</a>
                             </div>
                         </div>
                         <div class="info-row">
@@ -243,14 +236,14 @@ const generateAdminEmailTemplate = (data) => {
                     
                     <div class="message-box">
                         <strong style="color: #92400e;">💬 Message from client:</strong>
-                        <p>${data.details.replace(/\n/g, "<br>")}</p>
+                        <p>${(data.message || "").replace(/\n/g, "<br>")}</p>
                     </div>
                     
                     <div class="action-buttons">
                         <a href="mailto:${data.email}" class="btn btn-primary">
                             ✉️ Reply to Client
                         </a>
-                        <a href="tel:${data.phoneNumber}" class="btn btn-secondary">
+                        <a href="tel:${data.phone}" class="btn btn-secondary">
                             📞 Call Client
                         </a>
                     </div>

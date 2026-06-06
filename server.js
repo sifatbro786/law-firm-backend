@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
-const cron = require("node-cron");
+// const cron = require("node-cron");
 const axios = require("axios");
 const fs = require("fs");
 
@@ -88,13 +88,13 @@ const startServer = async () => {
     }
 };
 
-cron.schedule("*/10 * * * *", async () => {
-    try {
-        const res = await axios.get("https://law-firm-backend-yuxn.onrender.com/api/health");
-        console.log("Ping success:", res.data.status);
-    } catch (error) {
-        console.error("Ping failed:", error.message);
-    }
-});
+// cron.schedule("*/10 * * * *", async () => {
+//     try {
+//         const res = await axios.get("https://law-firm-backend-yuxn.onrender.com/api/health");
+//         console.log("Ping success:", res.data.status);
+//     } catch (error) {
+//         console.error("Ping failed:", error.message);
+//     }
+// });
 
 startServer();
