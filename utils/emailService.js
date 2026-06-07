@@ -329,7 +329,7 @@ const sendBookingEmail = async (bookingData) => {
                     body {
                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                         line-height: 1.6;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: #eef2f3;
                         margin: 0;
                         padding: 20px;
                     }
@@ -339,141 +339,101 @@ const sendBookingEmail = async (bookingData) => {
                         background: #ffffff;
                         border-radius: 20px;
                         overflow: hidden;
-                        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                        animation: slideIn 0.5s ease-out;
-                    }
-                    @keyframes slideIn {
-                        from {
-                            opacity: 0;
-                            transform: translateY(-30px);
-                        }
-                        to {
-                            opacity: 1;
-                            transform: translateY(0);
-                        }
+                        box-shadow: 0 20px 60px rgba(0,0,0,0.1);
                     }
                     .header {
-                        background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
-                        padding: 30px;
+                        background: #1a1a1a;
+                        padding: 30px 20px;
                         text-align: center;
-                        position: relative;
-                        overflow: hidden;
-                    }
-                    .header::before {
-                        content: '';
-                        position: absolute;
-                        top: -50%;
-                        right: -50%;
-                        width: 200%;
-                        height: 200%;
-                        background: radial-gradient(circle, rgba(201,160,61,0.15) 0%, transparent 70%);
-                        animation: pulse 3s ease-in-out infinite;
-                    }
-                    @keyframes pulse {
-                        0%, 100% { transform: scale(1); opacity: 0.5; }
-                        50% { transform: scale(1.1); opacity: 0.8; }
                     }
                     .logo {
-                        font-size: 32px;
+                        font-size: 28px;
                         font-weight: bold;
                         color: #ffffff;
-                        position: relative;
-                        z-index: 1;
                     }
                     .logo span {
                         color: #c9a03d;
                     }
                     .header-subtitle {
                         color: #c9a03d;
-                        font-size: 14px;
-                        margin-top: 8px;
-                        position: relative;
-                        z-index: 1;
+                        font-size: 13px;
+                        margin-top: 6px;
                     }
                     .content {
-                        padding: 40px;
+                        padding: 30px;
                     }
                     .badge {
                         display: inline-block;
                         background: #c9a03d;
                         color: #1a1a1a;
-                        padding: 5px 12px;
+                        padding: 5px 15px;
                         border-radius: 20px;
                         font-size: 12px;
                         font-weight: 600;
-                        margin-bottom: 15px;
+                        margin-bottom: 20px;
                     }
                     .greeting {
-                        font-size: 24px;
+                        font-size: 22px;
                         color: #1a1a1a;
-                        margin-bottom: 20px;
+                        margin-bottom: 15px;
                         font-weight: 600;
                     }
                     .appointment-card {
-                        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                        background: #f8f9fa;
                         border-radius: 15px;
-                        padding: 25px;
+                        padding: 20px;
                         margin: 20px 0;
-                        border: 2px solid #c9a03d;
-                        position: relative;
-                        overflow: hidden;
-                    }
-                    .appointment-card::before {
-                        content: '📅';
-                        position: absolute;
-                        top: -20px;
-                        right: -20px;
-                        font-size: 80px;
-                        opacity: 0.1;
-                        transform: rotate(15deg);
+                        border: 1px solid #e9ecef;
                     }
                     .info-row {
                         display: flex;
                         align-items: center;
-                        padding: 12px 0;
-                        border-bottom: 1px solid #dee2e6;
+                        padding: 10px 0;
+                        border-bottom: 1px solid #e9ecef;
                     }
                     .info-row:last-child {
                         border-bottom: none;
                     }
                     .info-icon {
-                        width: 45px;
-                        font-size: 22px;
+                        width: 40px;
+                        font-size: 20px;
                     }
                     .info-label {
-                        width: 110px;
+                        width: 95px;
                         font-weight: 600;
                         color: #495057;
+                        font-size: 14px;
                     }
                     .info-value {
                         flex: 1;
                         color: #212529;
-                        font-weight: 500;
+                        font-size: 14px;
                     }
                     .date-time {
-                        display: inline-block;
                         background: #1a1a1a;
                         color: #c9a03d;
-                        padding: 8px 16px;
-                        border-radius: 10px;
+                        padding: 5px 12px;
+                        border-radius: 8px;
+                        display: inline-block;
+                        font-size: 13px;
                         font-weight: 600;
                     }
                     .message-content {
                         background: #ffffff;
                         border-radius: 12px;
-                        padding: 20px;
+                        padding: 15px;
                         margin-top: 15px;
                         border: 1px solid #e9ecef;
                         font-style: italic;
-                        line-height: 1.8;
                         color: #495057;
+                        font-size: 14px;
                     }
                     .action-buttons {
                         display: flex;
-                        gap: 15px;
+                        gap: 12px;
                         justify-content: center;
-                        margin-top: 25px;
-                        margin-bottom: 25px;
+                        margin: 25px 0 20px;
+                        flex-wrap: wrap;
                     }
                     .btn-confirm {
                         background: #28a745;
@@ -482,11 +442,8 @@ const sendBookingEmail = async (bookingData) => {
                         border-radius: 8px;
                         text-decoration: none;
                         font-weight: 600;
-                        transition: all 0.3s;
-                    }
-                    .btn-confirm:hover {
-                        background: #218838;
-                        transform: translateY(-2px);
+                        font-size: 14px;
+                        display: inline-block;
                     }
                     .btn-reschedule {
                         background: #ffc107;
@@ -495,15 +452,32 @@ const sendBookingEmail = async (bookingData) => {
                         border-radius: 8px;
                         text-decoration: none;
                         font-weight: 600;
-                        transition: all 0.3s;
+                        font-size: 14px;
+                        display: inline-block;
                     }
-                    .btn-reschedule:hover {
-                        background: #e0a800;
-                        transform: translateY(-2px);
+                    .next-steps {
+                        background: #fff3cd;
+                        border-left: 4px solid #ffc107;
+                        padding: 15px;
+                        border-radius: 8px;
+                        margin-top: 20px;
+                    }
+                    .next-steps h4 {
+                        color: #856404;
+                        margin-bottom: 10px;
+                        font-size: 14px;
+                    }
+                    .next-steps ul {
+                        margin-left: 20px;
+                        color: #856404;
+                        font-size: 13px;
+                    }
+                    .next-steps li {
+                        margin: 5px 0;
                     }
                     .footer {
                         background: #1a1a1a;
-                        padding: 30px;
+                        padding: 25px 20px;
                         text-align: center;
                     }
                     .footer-text {
@@ -511,43 +485,25 @@ const sendBookingEmail = async (bookingData) => {
                         font-size: 12px;
                         line-height: 1.5;
                     }
-                    .social-links {
-                        margin-top: 15px;
-                    }
-                    .social-links a {
-                        color: #c9a03d;
-                        text-decoration: none;
-                        margin: 0 10px;
-                        font-size: 14px;
-                    }
-                    @media (max-width: 600px) {
+                    @media (max-width: 550px) {
                         .content { padding: 20px; }
                         .info-row { flex-direction: column; align-items: flex-start; gap: 5px; }
                         .info-label { width: auto; }
-                        .action-buttons { flex-direction: column; }
                     }
                 </style>
             </head>
             <body>
                 <div class="email-container">
                     <div class="header">
-                        <div class="logo">
-                            Neela's <span>Law Firm</span>
-                        </div>
+                        <div class="logo">Neela's <span>Law Firm</span></div>
                         <div class="header-subtitle">Professional Legal Services</div>
                     </div>
-                    
                     <div class="content">
                         <div class="badge">📋 New Consultation Request</div>
-                        
-                        <div class="greeting">
-                            🎯 New Booking Alert!
-                        </div>
-                        
-                        <p style="color: #6c757d; margin-bottom: 20px;">
-                            A potential client has requested a consultation. Please review the appointment details below.
+                        <div class="greeting">🎯 New Booking Alert!</div>
+                        <p style="color: #6c757d; margin-bottom: 20px; font-size: 14px;">
+                            A potential client has requested a consultation. Please review the details below.
                         </p>
-                        
                         <div class="appointment-card">
                             <div class="info-row">
                                 <div class="info-icon">👤</div>
@@ -574,34 +530,20 @@ const sendBookingEmail = async (bookingData) => {
                                 <div class="info-label">Time:</div>
                                 <div class="info-value"><span class="date-time">${time}</span></div>
                             </div>
-                            <div class="info-row">
-                                <div class="info-icon">🆔</div>
-                                <div class="info-label">Booking ID:</div>
-                                <div class="info-value"><code style="background: #e9ecef; padding: 2px 6px; border-radius: 4px;">#${Math.random().toString(36).substring(2, 10).toUpperCase()}</code></div>
-                            </div>
                         </div>
-                        
-                        ${
-                            message
-                                ? `
-                        <div style="margin-top: 20px;">
-                            <div style="font-weight: 600; margin-bottom: 10px; color: #1a1a1a;">💬 Additional Notes from Client:</div>
-                            <div class="message-content">
-                                "${message}"
-                            </div>
+                        ${message ? `
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 8px; color: #1a1a1a; font-size: 14px;">💬 Additional Notes:</div>
+                            <div class="message-content">"${message.replace(/"/g, '&quot;')}"</div>
                         </div>
-                        `
-                                : ""
-                        }
-                        
+                        ` : ""}
                         <div class="action-buttons">
                             <a href="mailto:${email}?subject=Consultation Confirmation - Neela's Law Firm" class="btn-confirm">✓ Confirm Booking</a>
                             <a href="tel:${phone}" class="btn-reschedule">📞 Call Client</a>
                         </div>
-                        
-                        <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 8px; margin-top: 20px;">
-                            <div style="font-weight: 600; margin-bottom: 5px;">⚠️ Next Steps:</div>
-                            <ul style="margin-left: 20px; color: #856404; font-size: 13px;">
+                        <div class="next-steps">
+                            <h4>⚠️ Next Steps:</h4>
+                            <ul>
                                 <li>Contact the client to confirm the appointment</li>
                                 <li>Prepare necessary consultation forms</li>
                                 <li>Send a confirmation email with details</li>
@@ -609,17 +551,11 @@ const sendBookingEmail = async (bookingData) => {
                             </ul>
                         </div>
                     </div>
-                    
                     <div class="footer">
                         <div class="footer-text">
                             <p>© ${new Date().getFullYear()} Neela's Law Firm. All rights reserved.</p>
-                            <p>House 123, Road 4, Block B, Banani, Dhaka-1213</p>
-                            <p>📞 +880 1234 567890 | 📧 info@neelaslawfirm.com</p>
-                        </div>
-                        <div class="social-links">
-                            <a href="#">Facebook</a> | 
-                            <a href="#">LinkedIn</a> | 
-                            <a href="#">Twitter</a>
+                            <p>157 Shantinagar, Dhaka 1217 (3rd floor of Mina Bazar)</p>
+                            <p>📞 +880 1712245511 | 📧 nowshed.j@gmail.com</p>
                         </div>
                     </div>
                 </div>
@@ -666,7 +602,7 @@ const sendBookingConfirmationEmail = async (bookingData) => {
                     body {
                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                         line-height: 1.6;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: #eef2f3;
                         margin: 0;
                         padding: 20px;
                     }
@@ -676,167 +612,135 @@ const sendBookingConfirmationEmail = async (bookingData) => {
                         background: #ffffff;
                         border-radius: 20px;
                         overflow: hidden;
-                        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                        animation: slideIn 0.5s ease-out;
-                    }
-                    @keyframes slideIn {
-                        from {
-                            opacity: 0;
-                            transform: translateY(-30px);
-                        }
-                        to {
-                            opacity: 1;
-                            transform: translateY(0);
-                        }
+                        box-shadow: 0 20px 60px rgba(0,0,0,0.1);
                     }
                     .header {
-                        background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
-                        padding: 30px;
+                        background: #1a1a1a;
+                        padding: 30px 20px;
                         text-align: center;
-                        position: relative;
-                        overflow: hidden;
-                    }
-                    .header::before {
-                        content: '';
-                        position: absolute;
-                        top: -50%;
-                        right: -50%;
-                        width: 200%;
-                        height: 200%;
-                        background: radial-gradient(circle, rgba(76, 175, 80, 0.15) 0%, transparent 70%);
-                        animation: pulse 3s ease-in-out infinite;
-                    }
-                    @keyframes pulse {
-                        0%, 100% { transform: scale(1); opacity: 0.5; }
-                        50% { transform: scale(1.1); opacity: 0.8; }
                     }
                     .logo {
-                        font-size: 32px;
+                        font-size: 28px;
                         font-weight: bold;
                         color: #ffffff;
-                        position: relative;
-                        z-index: 1;
                     }
                     .logo span {
                         color: #4caf50;
                     }
                     .header-subtitle {
                         color: #4caf50;
-                        font-size: 14px;
-                        margin-top: 8px;
-                        position: relative;
-                        z-index: 1;
+                        font-size: 13px;
+                        margin-top: 6px;
                     }
                     .content {
-                        padding: 40px;
+                        padding: 30px;
                     }
                     .success-badge {
                         display: inline-block;
                         background: #4caf50;
                         color: #ffffff;
-                        padding: 8px 20px;
+                        padding: 6px 20px;
                         border-radius: 30px;
-                        font-size: 14px;
+                        font-size: 13px;
                         font-weight: 600;
                         margin-bottom: 20px;
-                        text-align: center;
                     }
                     .greeting {
-                        font-size: 24px;
+                        font-size: 22px;
                         color: #1a1a1a;
-                        margin-bottom: 20px;
+                        margin-bottom: 15px;
                         font-weight: 600;
                     }
                     .message {
                         color: #6c757d;
-                        margin-bottom: 25px;
-                        line-height: 1.8;
+                        margin-bottom: 20px;
+                        line-height: 1.6;
+                        font-size: 14px;
                     }
                     .appointment-card {
-                        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                        background: #f8f9fa;
                         border-radius: 15px;
-                        padding: 25px;
-                        margin: 25px 0;
-                        border: 2px solid #4caf50;
-                        position: relative;
-                        overflow: hidden;
-                    }
-                    .appointment-card::before {
-                        content: '✓✓';
-                        position: absolute;
-                        top: -20px;
-                        right: -20px;
-                        font-size: 80px;
-                        opacity: 0.08;
-                        transform: rotate(15deg);
-                        color: #4caf50;
+                        padding: 20px;
+                        margin: 20px 0;
+                        border: 1px solid #4caf50;
                     }
                     .info-row {
                         display: flex;
                         align-items: center;
-                        padding: 12px 0;
-                        border-bottom: 1px solid #dee2e6;
+                        padding: 10px 0;
+                        border-bottom: 1px solid #e9ecef;
                     }
                     .info-row:last-child {
                         border-bottom: none;
                     }
                     .info-icon {
-                        width: 45px;
-                        font-size: 22px;
+                        width: 40px;
+                        font-size: 20px;
                     }
                     .info-label {
-                        width: 110px;
+                        width: 95px;
                         font-weight: 600;
                         color: #495057;
+                        font-size: 14px;
                     }
                     .info-value {
                         flex: 1;
                         color: #212529;
-                        font-weight: 500;
+                        font-size: 14px;
                     }
                     .date-time {
-                        display: inline-block;
                         background: #4caf50;
                         color: #ffffff;
-                        padding: 8px 16px;
-                        border-radius: 10px;
+                        padding: 5px 12px;
+                        border-radius: 8px;
+                        display: inline-block;
+                        font-size: 13px;
                         font-weight: 600;
                     }
                     .preparation-list {
                         background: #e8f5e9;
                         border-radius: 12px;
-                        padding: 20px;
+                        padding: 15px;
                         margin: 20px 0;
                     }
                     .preparation-list h4 {
                         color: #2e7d32;
-                        margin-bottom: 12px;
+                        margin-bottom: 10px;
+                        font-size: 14px;
                     }
                     .preparation-list ul {
                         margin-left: 20px;
                         color: #1b5e20;
+                        font-size: 13px;
                     }
                     .preparation-list li {
-                        margin: 8px 0;
+                        margin: 6px 0;
                     }
                     .button {
                         display: inline-block;
                         background: #4caf50;
                         color: #ffffff;
-                        padding: 12px 30px;
+                        padding: 10px 25px;
                         border-radius: 8px;
                         text-decoration: none;
                         font-weight: 600;
-                        margin: 20px 0;
-                        transition: all 0.3s;
+                        font-size: 14px;
+                        margin: 15px 0;
                     }
-                    .button:hover {
-                        background: #388e3c;
-                        transform: translateY(-2px);
+                    .info-box {
+                        background: #e3f2fd;
+                        border-left: 4px solid #2196f3;
+                        padding: 15px;
+                        border-radius: 8px;
+                        margin-top: 20px;
+                    }
+                    .info-box p {
+                        color: #1565c0;
+                        font-size: 13px;
                     }
                     .footer {
                         background: #1a1a1a;
-                        padding: 30px;
+                        padding: 25px 20px;
                         text-align: center;
                     }
                     .footer-text {
@@ -844,16 +748,7 @@ const sendBookingConfirmationEmail = async (bookingData) => {
                         font-size: 12px;
                         line-height: 1.5;
                     }
-                    .social-links {
-                        margin-top: 15px;
-                    }
-                    .social-links a {
-                        color: #4caf50;
-                        text-decoration: none;
-                        margin: 0 10px;
-                        font-size: 14px;
-                    }
-                    @media (max-width: 600px) {
+                    @media (max-width: 550px) {
                         .content { padding: 20px; }
                         .info-row { flex-direction: column; align-items: flex-start; gap: 5px; }
                         .info-label { width: auto; }
@@ -863,26 +758,18 @@ const sendBookingConfirmationEmail = async (bookingData) => {
             <body>
                 <div class="email-container">
                     <div class="header">
-                        <div class="logo">
-                            Neela's <span>Law Firm</span>
-                        </div>
+                        <div class="logo">Neela's <span>Law Firm</span></div>
                         <div class="header-subtitle">Professional Legal Services</div>
                     </div>
-                    
                     <div class="content">
                         <div style="text-align: center;">
                             <div class="success-badge">✓ CONFIRMED ✓</div>
                         </div>
-                        
-                        <div class="greeting">
-                            Dear ${name},
-                        </div>
-                        
+                        <div class="greeting">Dear ${name},</div>
                         <div class="message">
                             Great news! Your consultation request has been <strong>CONFIRMED</strong>. 
                             We're looking forward to assisting you with your legal matter.
                         </div>
-                        
                         <div class="appointment-card">
                             <div class="info-row">
                                 <div class="info-icon">📅</div>
@@ -897,15 +784,14 @@ const sendBookingConfirmationEmail = async (bookingData) => {
                             <div class="info-row">
                                 <div class="info-icon">📍</div>
                                 <div class="info-label">Location:</div>
-                                <div class="info-value">House 123, Road 4, Block B, Banani, Dhaka-1213</div>
+                                <div class="info-value">157 Shantinagar, Dhaka 1217 (3rd floor of Mina Bazar)</div>
                             </div>
                             <div class="info-row">
                                 <div class="info-icon">📞</div>
                                 <div class="info-label">Contact:</div>
-                                <div class="info-value">+880 1234 567890</div>
+                                <div class="info-value">+880 1712245511</div>
                             </div>
                         </div>
-                        
                         <div class="preparation-list">
                             <h4>📋 What to Bring / Prepare:</h4>
                             <ul>
@@ -916,7 +802,6 @@ const sendBookingConfirmationEmail = async (bookingData) => {
                                 <li>Notepad and pen for taking notes</li>
                             </ul>
                         </div>
-                        
                         <div class="message">
                             <strong>📍 Important Information:</strong><br>
                             • Please arrive 10 minutes before your scheduled time<br>
@@ -924,27 +809,18 @@ const sendBookingConfirmationEmail = async (bookingData) => {
                             • If you need to reschedule, please contact us 24 hours in advance<br>
                             • Virtual consultation is available upon request
                         </div>
-                        
                         <div style="text-align: center;">
-                            <a href="https://maps.google.com/?q=Banani,Dhaka" class="button">📍 Get Directions</a>
+                            <a href="https://maps.google.com/?q=157+Shantinagar+Dhaka" class="button">📍 Get Directions</a>
                         </div>
-                        
-                        <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; border-radius: 8px; margin-top: 20px;">
-                            <div style="font-weight: 600; margin-bottom: 5px; color: #1565c0;">💡 Need to Reschedule?</div>
-                            <p style="color: #1565c0; font-size: 13px;">Contact us at least 24 hours before your appointment to reschedule without any charges.</p>
+                        <div class="info-box">
+                            <p><strong>💡 Need to Reschedule?</strong><br>Contact us at least 24 hours before your appointment to reschedule without any charges.</p>
                         </div>
                     </div>
-                    
                     <div class="footer">
                         <div class="footer-text">
                             <p>© ${new Date().getFullYear()} Neela's Law Firm. All rights reserved.</p>
-                            <p>House 123, Road 4, Block B, Banani, Dhaka-1213</p>
-                            <p>📞 +880 1234 567890 | 📧 info@neelaslawfirm.com</p>
-                        </div>
-                        <div class="social-links">
-                            <a href="#">Facebook</a> | 
-                            <a href="#">LinkedIn</a> | 
-                            <a href="#">Twitter</a>
+                            <p>157 Shantinagar, Dhaka 1217 (3rd floor of Mina Bazar)</p>
+                            <p>📞 +880 1712245511 | 📧 nowshed.j@gmail.com</p>
                         </div>
                     </div>
                 </div>
@@ -991,7 +867,7 @@ const sendBookingCancellationEmail = async (bookingData) => {
                     body {
                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                         line-height: 1.6;
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        background: #eef2f3;
                         margin: 0;
                         padding: 20px;
                     }
@@ -1001,184 +877,148 @@ const sendBookingCancellationEmail = async (bookingData) => {
                         background: #ffffff;
                         border-radius: 20px;
                         overflow: hidden;
-                        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                        animation: slideIn 0.5s ease-out;
-                    }
-                    @keyframes slideIn {
-                        from {
-                            opacity: 0;
-                            transform: translateY(-30px);
-                        }
-                        to {
-                            opacity: 1;
-                            transform: translateY(0);
-                        }
+                        box-shadow: 0 20px 60px rgba(0,0,0,0.1);
                     }
                     .header {
-                        background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
-                        padding: 30px;
+                        background: #1a1a1a;
+                        padding: 30px 20px;
                         text-align: center;
-                        position: relative;
-                        overflow: hidden;
-                    }
-                    .header::before {
-                        content: '';
-                        position: absolute;
-                        top: -50%;
-                        right: -50%;
-                        width: 200%;
-                        height: 200%;
-                        background: radial-gradient(circle, rgba(244, 67, 54, 0.15) 0%, transparent 70%);
-                        animation: pulse 3s ease-in-out infinite;
-                    }
-                    @keyframes pulse {
-                        0%, 100% { transform: scale(1); opacity: 0.5; }
-                        50% { transform: scale(1.1); opacity: 0.8; }
                     }
                     .logo {
-                        font-size: 32px;
+                        font-size: 28px;
                         font-weight: bold;
                         color: #ffffff;
-                        position: relative;
-                        z-index: 1;
                     }
                     .logo span {
                         color: #f44336;
                     }
                     .header-subtitle {
                         color: #f44336;
-                        font-size: 14px;
-                        margin-top: 8px;
-                        position: relative;
-                        z-index: 1;
+                        font-size: 13px;
+                        margin-top: 6px;
                     }
                     .content {
-                        padding: 40px;
+                        padding: 30px;
                     }
                     .cancelled-badge {
                         display: inline-block;
                         background: #f44336;
                         color: #ffffff;
-                        padding: 8px 20px;
+                        padding: 6px 20px;
                         border-radius: 30px;
-                        font-size: 14px;
+                        font-size: 13px;
                         font-weight: 600;
                         margin-bottom: 20px;
-                        text-align: center;
                     }
                     .greeting {
-                        font-size: 24px;
+                        font-size: 22px;
                         color: #1a1a1a;
-                        margin-bottom: 20px;
+                        margin-bottom: 15px;
                         font-weight: 600;
                     }
                     .message {
                         color: #6c757d;
-                        margin-bottom: 25px;
-                        line-height: 1.8;
+                        margin-bottom: 20px;
+                        line-height: 1.6;
+                        font-size: 14px;
                     }
                     .appointment-card {
-                        background: linear-gradient(135deg, #fff5f5 0%, #fee 100%);
+                        background: #fff5f5;
                         border-radius: 15px;
-                        padding: 25px;
-                        margin: 25px 0;
-                        border: 2px solid #f44336;
-                        position: relative;
-                        overflow: hidden;
-                    }
-                    .appointment-card::before {
-                        content: '❌❌';
-                        position: absolute;
-                        top: -20px;
-                        right: -20px;
-                        font-size: 80px;
-                        opacity: 0.08;
-                        transform: rotate(15deg);
-                        color: #f44336;
+                        padding: 20px;
+                        margin: 20px 0;
+                        border: 1px solid #f44336;
                     }
                     .info-row {
                         display: flex;
                         align-items: center;
-                        padding: 12px 0;
-                        border-bottom: 1px solid #dee2e6;
+                        padding: 10px 0;
+                        border-bottom: 1px solid #ffe0e0;
                     }
                     .info-row:last-child {
                         border-bottom: none;
                     }
                     .info-icon {
-                        width: 45px;
-                        font-size: 22px;
+                        width: 40px;
+                        font-size: 20px;
                     }
                     .info-label {
-                        width: 110px;
+                        width: 95px;
                         font-weight: 600;
                         color: #495057;
+                        font-size: 14px;
                     }
                     .info-value {
                         flex: 1;
                         color: #212529;
-                        font-weight: 500;
+                        font-size: 14px;
                     }
                     .date-time-cancelled {
-                        display: inline-block;
                         background: #f44336;
                         color: #ffffff;
-                        padding: 8px 16px;
-                        border-radius: 10px;
+                        padding: 5px 12px;
+                        border-radius: 8px;
+                        display: inline-block;
+                        font-size: 13px;
                         font-weight: 600;
                         text-decoration: line-through;
                     }
                     .alternative-options {
                         background: #fff3e0;
                         border-radius: 12px;
-                        padding: 20px;
+                        padding: 15px;
                         margin: 20px 0;
                         border-left: 4px solid #ff9800;
                     }
                     .alternative-options h4 {
                         color: #e65100;
-                        margin-bottom: 12px;
+                        margin-bottom: 10px;
+                        font-size: 14px;
                     }
                     .alternative-options ul {
                         margin-left: 20px;
                         color: #bf360c;
+                        font-size: 13px;
                     }
                     .alternative-options li {
-                        margin: 8px 0;
+                        margin: 6px 0;
                     }
                     .button {
                         display: inline-block;
                         background: #f44336;
                         color: #ffffff;
-                        padding: 12px 30px;
+                        padding: 10px 20px;
                         border-radius: 8px;
                         text-decoration: none;
                         font-weight: 600;
-                        margin: 20px 0;
-                        transition: all 0.3s;
+                        font-size: 14px;
+                        margin: 10px 5px;
                     }
                     .button-reschedule {
                         display: inline-block;
                         background: #ff9800;
                         color: #ffffff;
-                        padding: 12px 30px;
+                        padding: 10px 20px;
                         border-radius: 8px;
                         text-decoration: none;
                         font-weight: 600;
-                        margin: 20px 10px;
-                        transition: all 0.3s;
+                        font-size: 14px;
+                        margin: 10px 5px;
                     }
-                    .button:hover {
-                        background: #d32f2f;
-                        transform: translateY(-2px);
+                    .help-box {
+                        background: #ffebee;
+                        border-left: 4px solid #f44336;
+                        padding: 15px;
+                        border-radius: 8px;
+                        margin-top: 20px;
                     }
-                    .button-reschedule:hover {
-                        background: #f57c00;
-                        transform: translateY(-2px);
+                    .help-box p {
+                        color: #c62828;
+                        font-size: 13px;
                     }
                     .footer {
                         background: #1a1a1a;
-                        padding: 30px;
+                        padding: 25px 20px;
                         text-align: center;
                     }
                     .footer-text {
@@ -1186,46 +1026,29 @@ const sendBookingCancellationEmail = async (bookingData) => {
                         font-size: 12px;
                         line-height: 1.5;
                     }
-                    .social-links {
-                        margin-top: 15px;
-                    }
-                    .social-links a {
-                        color: #f44336;
-                        text-decoration: none;
-                        margin: 0 10px;
-                        font-size: 14px;
-                    }
-                    @media (max-width: 600px) {
+                    @media (max-width: 550px) {
                         .content { padding: 20px; }
                         .info-row { flex-direction: column; align-items: flex-start; gap: 5px; }
                         .info-label { width: auto; }
-                        .button-reschedule { display: block; margin: 10px 0; }
+                        .button, .button-reschedule { display: block; margin: 10px 0; text-align: center; }
                     }
                 </style>
             </head>
             <body>
                 <div class="email-container">
                     <div class="header">
-                        <div class="logo">
-                            Neela's <span>Law Firm</span>
-                        </div>
+                        <div class="logo">Neela's <span>Law Firm</span></div>
                         <div class="header-subtitle">Professional Legal Services</div>
                     </div>
-                    
                     <div class="content">
                         <div style="text-align: center;">
                             <div class="cancelled-badge">✗ CANCELLED ✗</div>
                         </div>
-                        
-                        <div class="greeting">
-                            Dear ${name},
-                        </div>
-                        
+                        <div class="greeting">Dear ${name},</div>
                         <div class="message">
                             We regret to inform you that your consultation has been <strong>CANCELLED</strong>.
                             ${reason ? `<br><br><strong>Reason for cancellation:</strong> ${reason}` : ""}
                         </div>
-                        
                         <div class="appointment-card">
                             <div class="info-row">
                                 <div class="info-icon">📅</div>
@@ -1238,7 +1061,6 @@ const sendBookingCancellationEmail = async (bookingData) => {
                                 <div class="info-value"><span class="date-time-cancelled">${time}</span></div>
                             </div>
                         </div>
-                        
                         <div class="alternative-options">
                             <h4>🔄 What You Can Do Next:</h4>
                             <ul>
@@ -1248,32 +1070,22 @@ const sendBookingCancellationEmail = async (bookingData) => {
                                 <li><strong>Email Support:</strong> Send your queries to our legal team</li>
                             </ul>
                         </div>
-                        
                         <div style="text-align: center;">
                             <a href="${process.env.FRONTEND_URL || "http://localhost:3000"}/booking" class="button-reschedule">📅 Reschedule Now</a>
-                            <a href="tel:+8801234567890" class="button">📞 Call Support</a>
+                            <a href="tel:+8801712245511" class="button">📞 Call Support</a>
                         </div>
-                        
-                        <div style="background: #ffebee; border-left: 4px solid #f44336; padding: 15px; border-radius: 8px; margin-top: 20px;">
-                            <div style="font-weight: 600; margin-bottom: 5px; color: #c62828;">💬 Need Immediate Assistance?</div>
-                            <p style="color: #c62828; font-size: 13px;">Our support team is available 24/7 to help you. Call us at +880 1234 567890 or email support@neelaslawfirm.com</p>
+                        <div class="help-box">
+                            <p><strong>💬 Need Immediate Assistance?</strong><br>Our support team is available 24/7 to help you. Call us at +880 1712245511 or email nowshed.j@gmail.com</p>
                         </div>
-                        
-                        <div class="message" style="margin-top: 20px; font-size: 13px;">
+                        <div class="message" style="margin-top: 15px; font-size: 12px;">
                             <strong>Note:</strong> If this cancellation was made in error, please contact us immediately to restore your booking.
                         </div>
                     </div>
-                    
                     <div class="footer">
                         <div class="footer-text">
                             <p>© ${new Date().getFullYear()} Neela's Law Firm. All rights reserved.</p>
-                            <p>House 123, Road 4, Block B, Banani, Dhaka-1213</p>
-                            <p>📞 +880 1234 567890 | 📧 info@neelaslawfirm.com</p>
-                        </div>
-                        <div class="social-links">
-                            <a href="#">Facebook</a> | 
-                            <a href="#">LinkedIn</a> | 
-                            <a href="#">Twitter</a>
+                            <p>157 Shantinagar, Dhaka 1217 (3rd floor of Mina Bazar)</p>
+                            <p>📞 +880 1712245511 | 📧 nowshed.j@gmail.com</p>
                         </div>
                     </div>
                 </div>
