@@ -281,13 +281,8 @@ const sendContactEmail = async (contactData) => {
                     <div class="footer">
                         <div class="footer-text">
                             <p>© ${new Date().getFullYear()} Neela's Law Firm. All rights reserved.</p>
-                            <p>House 123, Road 4, Block B, Banani, Dhaka-1213</p>
-                            <p>📞 +880 1234 567890 | 📧 info@neelaslawfirm.com</p>
-                        </div>
-                        <div class="social-links">
-                            <a href="#">Facebook</a> | 
-                            <a href="#">LinkedIn</a> | 
-                            <a href="#">Twitter</a>
+                            <p>157 Shantinagar, Dhaka 1217 (3rd floor of Mina Bazar)</p>
+                            <p>📞 +880 1712245511 | 📧 nowshed.j@gmail.com</p>
                         </div>
                     </div>
                 </div>
